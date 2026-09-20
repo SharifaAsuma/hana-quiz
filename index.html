@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!--
+  ================================================================
+  花おぼえ ○×クイズ
+
+  このファイル1つで「見た目（HTML/CSS）」と「動き（JavaScript）」を
+  すべてまとめています。上から順に、
+    1. <head>   … タイトルやフォントなど、ページ全体の設定
+    2. <style>  … 見た目（色・文字・レイアウト）のルール
+    3. <body>   … 画面に表示される部品（ボタンや箱）
+    4. <script> … クイズの出題ロジックや、写真の保存処理
+  という並びになっています。
+  ================================================================
+-->
+<html lang="ja">
+<head>
+  <!-- 文字コードと、スマホでの表示幅を指定 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>花おぼえ ○×クイズ</title>
+
+  <!-- 見出しなどに使う日本語フォント（Google Fonts）を読み込む -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<!-- CSS（見た目）ここまで -->
+</head>
+<body>
+
+<!--
+  ================================================================
+  HTML（画面の部品）ここから
+  ------------------------------------------------------------
+  <section class="screen" id="s-○○"> の形で、8つの「画面」を
+  すべて用意しておき、いま見せたい画面だけJavaScriptの show() 関数が
+  クラス "on" を付けて表示する、という仕組み（紙芝居のイメージ）。
+  ================================================================
+-->
+<div class="app">
+  <div class="topbar"><!-- いちばん上のアプリ名の帯 -->
+    <h1 class="brand">花おぼえ<span>○×</span>クイズ</h1>
+    <span class="sub" id="modeHint"></span>
+  </div>
+
+  <main>
+    <!-- ================= ホーム ================= -->
+    <section class="screen on" id="s-home">
+      <!-- id="homeLede" などのidは、JSの renderHome() 関数が
+           .textContent や .innerHTML でここに文字を書き込むための目印 -->
+      <p class="lede" id="homeLede"></p>
+      <div class="tally">
+        <div><span class="n" id="tTotal">0</span><span class="l">登録した花</span></div>
+        <div><span class="n" id="tDue">0</span><span class="l">今日の復習</span></div>
+        <div><span class="n" id="tMaster">0</span><span class="l">覚えた花</span></div>
+      </div>
+      <div class="stack">
+        <!-- クリックすると JS の startSession(true/false) が呼ばれる -->
+        <button class="cta" id="startBtn">学習をはじめる</button>
+        <button class="cta ghost" id="startAllBtn">ぜんぶから出題する</button>
+      </div>
+      <div id="homeEmpty"></div><!-- 花が0件のときの案内文がここに入る -->
+      <h2 class="sec" id="weakHead" hidden>まちがえやすい花</h2>
+      <ul class="weak" id="weakList"></ul><!-- 間違えた回数が多い花の一覧 -->
+    </section>
+
+    <!-- ================= クイズ ================= -->
+    <section class="screen" id="s-quiz">
+      <div class="qhead">
+        <span class="cnt" id="qCount"></span><!-- 「3 / 10 問」の表示 -->
+        <span class="tm" id="qTimer"></span><!-- 残り時間。制限時間なし設定なら空のまま -->
+      </div>
+      <div class="bar"><i id="qBar"></i></div><!-- 進捗バー。<i>のwidthをJSが更新する -->
+
+      <div class="stage">
+        <img id="qPhoto" alt="花の写真"><!-- 出題する花の写真。srcをJSが差し替える -->
+        <div class="verdict" id="qVerdict"></div><!-- 回答直後の⭕❌演出をここに表示 -->
+      </div>
+
+      <!-- qAsk：まだ回答していないときに見えている「問題」側 -->
+      <div id="qAsk">
+        <div class="claim" id="qClaim"></div><!-- ○×問題文、または「名前は？」の文言 -->
+        <div class="ox" id="qOx"><!-- ○×モードのときだけ表示するボタン -->
+          <button class="yes" id="btnYes" aria-label="○ 正しい">⭕</button>
+          <button class="no" id="btnNo" aria-label="× ちがう">❌</button>
+        </div>
+        <div class="choices" id="qChoices" hidden></div><!-- 4択モードのときだけ表示する選択肢 -->
+      </div>
+
+      <!-- qAnswer：回答した後に見せる「解説」側。回答前はhiddenで隠れている -->
+      <div id="qAnswer" hidden>
+        <div class="answer">
+          <span class="nm" id="aName"></span><!-- 花の正式名 -->
+          <span class="alias" id="aAlias"></span><!-- 別名・学名（未入力なら非表示） -->
+          <span class="memo" id="aMemo"></span><!-- 図鑑に書いたメモ（科名・見分け方など） -->
+          <span class="lv" id="aLevel"></span><!-- 記憶レベルと次回出題予定 -->
+        </div>
+        <button class="cta" id="nextBtn">次の問題へ</button>
+      </div>
+      <button class="back" id="quitBtn">← 学習をやめる</button>
+    </section>
+
+    <!-- ================= 結果 ================= -->
+    <section class="screen" id="s-result"><!-- 全問終わったあとの成績画面 -->
+      <div class="final">
+        <div class="sc" id="fScore"></div><!-- 「8 / 10 問」の大きな数字 -->
+        <p id="fMsg"></p><!-- 正答率に応じた励ましコメント -->
+        <div class="stack">
+          <button class="cta" id="againBtn">もう一度おさらい</button>
+          <button class="cta ghost" id="homeBtn">ホームにもどる</button>
+        </div>
+      </div>
+      <h2 class="sec" id="missHead" hidden>今回まちがえた花</h2>
+      <ul class="weak" id="missList"></ul>
+    </section>
+
+    <!-- ================= 図鑑 ================= -->
+    <section class="screen" id="s-lib"><!-- 登録済みの花を一覧できる図鑑 -->
+      <div class="tools">
+        <input type="search" id="search" placeholder="花の名前でさがす" autocomplete="off">
+        <button class="btn" id="toAddBtn">＋ 追加</button><!-- 「追加」画面(s-add)へ切り替え -->
+      </div>
+      <div class="grid" id="grid"></div><!-- 花のタイル一覧。renderLibrary()が作る -->
+      <div id="libEmpty"></div><!-- 0件のときの案内文 -->
+    </section>
+
+    <!-- ================= 詳細：タイルをタップすると開く1件分の編集画面 ================= -->
+    <section class="screen" id="s-detail">
+      <button class="back" id="dBack">← 図鑑にもどる</button>
+      <div class="detail-photos" id="dPhotos"></div><!-- 登録済み写真の横並び。写真ごとに✕削除ボタン付き -->
+      <label class="f"><span>花の名前（出題される名前）</span><input id="dName" autocomplete="off"></label>
+      <label class="f"><span>別名・学名（任意）</span><input id="dAlias" autocomplete="off"></label>
+      <label class="f"><span>メモ（科名・開花期・見分け方など。解説に表示されます）</span><textarea id="dMemo"></textarea></label>
+      <p class="stats" id="dStats"></p><!-- 記憶レベルや正解数などの統計 -->
+      <div class="row">
+        <button class="btn fill" id="dSave">保存する</button>
+        <button class="btn" id="dAddPhoto">写真を足す</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="dReset">学習の記録をリセット</button><!-- 記憶レベルを1に戻す -->
+        <button class="btn danger" id="dDelete">この花を削除</button>
+      </div>
+    </section>
+
+    <!-- ================= 追加 ================= -->
+    <section class="screen" id="s-add"><!-- 写真を選んで新しい花を登録する画面 -->
+      <button class="back" id="aBack">← もどる</button>
+      <div class="drop">
+        <!-- 見た目は緑ボタンの<label>だが、中の<input type=file>が本体。
+             hidden で隠しつつ、<label>をタップすると連動してファイル選択が開く -->
+        <label class="pick">写真をえらぶ<input type="file" id="files" accept="image/*" multiple hidden></label>
+        <p>スマホのアルバムやカメラから、何枚でもまとめて選べます。<br>
+        ファイル名が「チューリップ_1」「チューリップ_2」のように連番なら、同じ花としてまとめます。</p>
+      </div>
+      <ul class="queue" id="queue"></ul><!-- 選んだ写真が、名前を確認できる形で並ぶ「登録前の一覧」 -->
+      <div class="row" id="queueActions" hidden>
+        <button class="btn fill" id="saveQueue">この内容で登録する</button>
+      </div>
+      <p class="note">名前は登録したあとでも直せます。同じ名前の花がすでにあれば、写真はそこに追加されます。</p>
+    </section>
+
+    <!-- ================= 設定 ================= -->
+    <section class="screen" id="s-set">
+      <!-- .segの各グループは、JSのsegment()関数がボタンを作り、
+           クリックされた項目をsettingsオブジェクトに保存する -->
+      <h2 class="sec">1回の学習で出す問題数</h2>
+      <div class="seg" id="segCount"></div>
+
+      <h2 class="sec">出題のしかた</h2>
+      <div class="seg" id="segMode"></div>
+      <p class="note">「○×と4択」にすると、ときどき「この花の名前は？」という4択問題が混ざります。思い出す練習になるので、暗記は早く進みます。</p>
+
+      <h2 class="sec">制限時間</h2>
+      <div class="seg" id="segTimer"></div>
+
+      <h2 class="sec">画面の明るさ</h2>
+      <div class="seg" id="segTheme"></div>
+
+      <h2 class="sec">データの保存先</h2>
+      <p class="note" id="storeNote"></p><!-- 保存件数や、保存できているかの説明文 -->
+      <div class="stack">
+        <button class="btn" id="exportBtn">バックアップを書き出す</button>
+        <label class="pick" style="background:var(--card);color:var(--ink);border:1px solid var(--line);text-align:center;display:block;font-weight:500;font-size:15px;padding:13px;border-radius:12px">
+          バックアップから復元する<input type="file" id="importFile" accept="application/json,.json" hidden>
+        </label>
+      </div>
+      <p class="note">書き出したファイルには写真も学習の記録も入っています。機種変更のときや、別の端末でも使いたいときに読み込んでください。</p>
+    </section>
+  </main>
+
+  <!-- 画面いちばん下のタブ。data-go の値が、切り替え先の画面名(s-○○の○○部分)に対応 -->
+  <nav>
+    <button data-go="home" aria-current="page"><span class="ic">🌱</span>学習</button>
+    <button data-go="lib"><span class="ic">📖</span>図鑑</button>
+    <button data-go="set"><span class="ic">⚙️</span>設定</button>
+  </nav>
+</div>
+<!-- HTML（画面の部品）ここまで -->
+
+<script src="script.js"></script>
+</body>
+</html>
