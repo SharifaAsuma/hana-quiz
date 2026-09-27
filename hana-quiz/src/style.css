@@ -1,0 +1,243 @@
+/* ============================================================
+   CSS（見た目）ここから
+   ------------------------------------------------------------
+   :root の中の --色名 は「変数」。ここで色をまとめて決めておき、
+   下の各パーツでは var(--色名) の形で呼び出して使う。
+   こうすると、配色を変えたいときにここだけ直せばよくなる。
+   ============================================================ */
+:root{
+  /* ---- 通常時（明るい画面）の配色 ---- */
+  --paper:#EEF0E8;
+  --card:#FFFFFF;
+  --ink:#1E2A22;
+  --ink-soft:#5A6A5E;
+  --line:#D6DBCB;
+  --bloom:#BB3F68;
+  --leaf:#5C7C4F;
+  --amber:#8A6A22;
+  --amber-bg:#FBF3DE;
+  --shadow:0 2px 0 rgba(30,42,34,.06);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+/* ---- 端末が「ダーク（暗い）モード」設定のとき、自動で置き換わる配色 ----
+   （設定画面で「明るい」を選んだ場合は data-theme="light" が付き、
+   この @media ブロックの条件から外れて、上の明るい配色のままになる） */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#141A15;
+    --card:#1D241E;
+    --ink:#E7EBE1;
+    --ink-soft:#A2AE9F;
+    --line:#333C33;
+    --bloom:#E27093;
+    --leaf:#8CB07C;
+    --amber:#D9B76B;
+    --amber-bg:#2A2718;
+    --shadow:none;
+  }
+}
+/* ---- 設定画面で「暗い」を選んだとき、端末の設定に関わらず強制的に使う配色 ---- */
+:root[data-theme="dark"]{
+  --paper:#141A15; --card:#1D241E; --ink:#E7EBE1; --ink-soft:#A2AE9F;
+  --line:#333C33; --bloom:#E27093; --leaf:#8CB07C; --amber:#D9B76B;
+  --amber-bg:#2A2718; --shadow:none;
+}
+
+/* ---- ページ全体の共通ルール ---- */
+*,*::before,*::after{box-sizing:border-box} /* 幅の計算方法をそろえる（枠線込みで計算） */
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{
+  margin:0;height:100%;
+  background:var(--paper);color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  font-size:16px;line-height:1.75;
+  display:flex;flex-direction:column; /* 上：ヘッダー／中：本文／下：ナビ、を縦に並べる */
+}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--bloom);outline-offset:2px} /* キーボード操作時の枠線 */
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}} /* 「動きを減らす」設定の人には演出を止める */
+
+/* ---------- shell：ヘッダー・本文の外枠 ---------- */
+.app{width:100%;max-width:580px;margin:0 auto;flex:1;display:flex;flex-direction:column;min-height:0}
+.topbar{ /* 画面いちばん上の帯（アプリ名） */
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:14px 20px 10px;
+}
+.brand{font-family:"Zen Old Mincho",serif;font-weight:700;font-size:19px;letter-spacing:.06em;margin:0}
+.brand span{color:var(--bloom)}
+.topbar .sub{font-size:12px;color:var(--ink-soft)}
+main{flex:1;overflow-y:auto;padding:0 20px 28px;min-height:0;-webkit-overflow-scrolling:touch} /* 本文部分。縦にスクロールできる */
+.screen{display:none} /* 各画面（学習・図鑑・設定など）は、ふだんは隠しておく */
+.screen.on{display:block} /* JavaScriptがこのクラスを付けた画面だけを表示する */
+
+/* ---------- nav：画面いちばん下のタブ（学習／図鑑／設定） ---------- */
+nav{
+  display:flex;border-top:1px solid var(--line);background:var(--card);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+nav button{
+  flex:1;background:none;border:none;padding:10px 4px 12px;
+  font-size:12px;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+nav button .ic{font-size:19px;line-height:1}
+nav button[aria-current="page"]{color:var(--bloom);font-weight:700} /* 今開いているタブを目立たせる */
+
+/* ---------- home：「学習」タブの最初の画面 ---------- */
+.lede{font-family:"Zen Old Mincho",serif;font-size:21px;line-height:1.8;margin:18px 0 6px}
+.lede b{font-size:44px;font-weight:700;color:var(--bloom);letter-spacing:-.02em;padding:0 3px}
+.lede small{font-size:15px;color:var(--ink-soft);font-family:inherit}
+.tally{display:flex;gap:10px;margin:18px 0 22px} /* 「登録した花／今日の復習／覚えた花」の3つの数字カード */
+.tally div{
+  flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;box-shadow:var(--shadow)
+}
+.tally .n{font-family:"Zen Old Mincho",serif;font-size:24px;font-weight:700;display:block;line-height:1.3}
+.tally .l{font-size:11px;color:var(--ink-soft);display:block}
+.cta{ /* 画面いちばんの主役ボタン（例：「学習をはじめる」） */
+  width:100%;background:var(--bloom);color:#fff;border:none;border-radius:14px;
+  padding:17px;font-size:18px;font-weight:700;box-shadow:var(--shadow)
+}
+.cta:disabled{background:var(--line);color:var(--ink-soft);box-shadow:none} /* 押せない状態（復習する花がないときなど） */
+.cta.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);font-size:16px;padding:14px} /* 主役ではない、控えめなボタン */
+.stack{display:flex;flex-direction:column;gap:10px}
+h2.sec{ /* 「まちがえやすい花」などの小見出し */
+  font-family:"Zen Old Mincho",serif;font-size:15px;font-weight:700;
+  margin:30px 0 10px;padding-bottom:7px;border-bottom:1px solid var(--line)
+}
+.weak{list-style:none;margin:0;padding:0} /* 花の一覧（写真＋名前＋正誤数）の並び */
+.weak li{display:flex;align-items:center;gap:11px;padding:7px 0}
+.weak img{width:42px;height:42px;border-radius:9px;object-fit:cover;background:var(--line);flex:0 0 auto}
+.weak .nm{flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.weak .rt{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.empty{ /* 「まだ何も登録されていません」のような案内枠 */
+  border:1px dashed var(--line);border-radius:14px;padding:22px 18px;margin:16px 0;
+  color:var(--ink-soft);font-size:14px;line-height:1.9
+}
+.empty b{color:var(--ink);font-size:15px;display:block;margin-bottom:6px}
+
+/* ---------- quiz：出題中の画面 ---------- */
+.qhead{display:flex;justify-content:space-between;align-items:center;margin:14px 0 12px;font-size:13px;color:var(--ink-soft)} /* 「◯／◯問」と残り時間の行 */
+.qhead .cnt{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.qhead .tm{color:var(--bloom);font-weight:700;font-variant-numeric:tabular-nums}
+.bar{height:3px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px} /* 進捗バーの背景（灰色の細い線） */
+.bar i{display:block;height:100%;background:var(--leaf);width:0;transition:width .3s} /* 進捗バーの緑色部分。widthはJSが問題番号に応じて変える */
+.stage{ /* 花の写真を表示する黒い舞台 */
+  position:relative;width:100%;aspect-ratio:4/3;border-radius:16px;overflow:hidden;
+  background:#0E120F;display:flex;align-items:center;justify-content:center
+}
+.stage img{width:100%;height:100%;object-fit:contain}
+.verdict{ /* 回答直後に写真の上へかぶせる「⭕／❌」の演出 */
+  position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  font-size:82px;font-weight:700;color:#fff;background:rgba(14,18,15,.55);backdrop-filter:blur(2px)
+}
+.verdict.on{display:flex} /* JSがこのクラスを付けると表示される */
+.verdict.ok{color:#8FE0A8}
+.verdict.ng{color:#FF9AAE}
+.verdict small{font-size:17px;letter-spacing:.1em;font-weight:500;color:#fff;margin-top:2px}
+.claim{ /* 「この花は〇〇である。」の問題文の箱 */
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin:14px 0 16px;font-size:19px;line-height:1.7;box-shadow:var(--shadow)
+}
+.claim em{font-style:normal;font-weight:700;color:var(--bloom);font-size:21px} /* 問題文中の花の名前部分を強調 */
+.ox{display:flex;gap:14px} /* ⭕❌ボタンを横に並べる */
+.ox button{
+  flex:1;height:86px;border:none;border-radius:16px;font-size:38px;color:#fff;
+  box-shadow:var(--shadow);transition:transform .12s
+}
+.ox button:active{transform:scale(.96)} /* 押した瞬間、少し縮んで手応えを出す */
+.ox .yes{background:#3E86C4}
+.ox .no{background:#CE5A5A}
+.choices{display:flex;flex-direction:column;gap:9px} /* 4択モードの選択肢（縦並び） */
+.choices button{
+  width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:14px 16px;font-size:17px;font-weight:500;box-shadow:var(--shadow)
+}
+.answer{ /* 回答後に出る「解説」の黄色い箱 */
+  background:var(--amber-bg);border-radius:14px;padding:16px 18px;margin:14px 0 16px;
+  font-size:15px;line-height:1.85
+}
+.answer .nm{font-family:"Zen Old Mincho",serif;font-size:22px;font-weight:700;display:block;margin-bottom:2px}
+.answer .alias{font-size:13px;color:var(--ink-soft);display:block;margin-bottom:9px}
+.answer .memo{white-space:pre-wrap}
+.answer .lv{display:block;margin-top:10px;font-size:12px;color:var(--amber);letter-spacing:.08em} /* 「記憶レベル ●●○○○　次の出題：3日後」の行 */
+
+/* ---------- library：「図鑑」タブ（登録した花の一覧） ---------- */
+.tools{display:flex;gap:9px;margin:16px 0 14px} /* 検索欄と「＋追加」ボタンの行 */
+.tools input[type=search]{
+  flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:11px 13px;font:inherit;font-size:15px;color:var(--ink)
+}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px} /* 花を3列のマス目で並べる */
+@media (max-width:360px){.grid{grid-template-columns:repeat(2,1fr)}} /* 画面がとても狭い端末では2列にする */
+.tile{ /* 図鑑の1マス（写真＋名前＋記憶レベル） */
+  background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  padding:0;text-align:left;box-shadow:var(--shadow)
+}
+.tile img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--line)}
+.tile .cap{padding:7px 8px 8px}
+.tile .nm{font-size:13px;font-weight:500;line-height:1.4;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .lv{font-size:11px;color:var(--leaf);letter-spacing:.06em}
+
+/* ---------- detail / form：1つの花の詳細画面（名前の編集など） ---------- */
+.detail-photos{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;margin:16px 0} /* 登録済み写真を横スクロールで並べる */
+.detail-photos figure{margin:0;position:relative;flex:0 0 auto}
+.detail-photos img{width:132px;height:132px;object-fit:cover;border-radius:12px;background:var(--line)}
+.detail-photos button{ /* 写真の右上に重ねる「✕」削除ボタン */
+  position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;border:none;
+  background:rgba(14,18,15,.68);color:#fff;font-size:14px;line-height:26px;padding:0
+}
+label.f{display:block;margin:14px 0 0} /* 名前・メモなどの入力欄1つぶん */
+label.f span{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:5px}
+label.f input,label.f textarea,label.f select{
+  width:100%;background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:12px 13px;font:inherit;font-size:16px;color:var(--ink)
+}
+label.f textarea{min-height:92px;resize:vertical;line-height:1.7}
+.row{display:flex;gap:10px;margin-top:18px}
+.row button{flex:1}
+.btn{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px;
+  font-size:15px;font-weight:500;box-shadow:var(--shadow)
+}
+.btn.fill{background:var(--leaf);color:#fff;border-color:var(--leaf)} /* 「保存する」など、緑で強調するボタン */
+.btn.danger{color:var(--bloom);border-color:var(--line)} /* 「削除する」など、注意を促すボタン */
+.stats{font-size:13px;color:var(--ink-soft);margin-top:10px}
+.back{background:none;border:none;padding:14px 0 4px;color:var(--ink-soft);font-size:14px} /* 「←もどる」リンク */
+
+/* ---------- add：写真を選んで花を登録する画面 ---------- */
+.drop{ /* 「写真をえらぶ」ボタンを囲む点線の枠 */
+  border:1px dashed var(--line);border-radius:14px;padding:26px 18px;text-align:center;
+  margin:16px 0;background:var(--card)
+}
+.drop p{margin:10px 0 0;font-size:13px;color:var(--ink-soft);line-height:1.8}
+.pick{display:inline-block;background:var(--leaf);color:#fff;border-radius:12px;padding:13px 22px;font-weight:700;font-size:15px} /* 見た目上のボタン。中に本物の<input type=file>を透明で重ねている */
+.queue{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px} /* 登録前の「これから登録する花」一覧 */
+.queue li{
+  display:flex;gap:11px;align-items:center;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:9px;box-shadow:var(--shadow)
+}
+.queue img{width:54px;height:54px;border-radius:9px;object-fit:cover;flex:0 0 auto;background:var(--line)}
+.queue .fld{flex:1;min-width:0}
+.queue input{
+  width:100%;border:none;border-bottom:1px solid var(--line);background:none;
+  font:inherit;font-size:16px;padding:3px 0;color:var(--ink)
+}
+.queue .ct{font-size:11px;color:var(--ink-soft)}
+.queue .rm{background:none;border:none;color:var(--ink-soft);font-size:18px;padding:6px}
+.note{font-size:13px;color:var(--ink-soft);line-height:1.85;margin:12px 0}
+.toast{ /* 画面下からポッと出る「保存しました」などの通知（JSのtoast関数が生成） */
+  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));
+  background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:11px;font-size:14px;
+  z-index:50;max-width:86%;text-align:center
+}
+.seg{display:flex;gap:8px;flex-wrap:wrap} /* 設定画面の「5問／10問／20問」のような選択ボタン群 */
+.seg button{
+  background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 15px;font-size:14px
+}
+.seg button[aria-pressed="true"]{background:var(--leaf);color:#fff;border-color:var(--leaf);font-weight:700} /* 今選ばれている項目 */
+.final{text-align:center;padding:12px 0} /* クイズ終了後の「結果」画面 */
+.final .sc{font-family:"Zen Old Mincho",serif;font-size:46px;font-weight:700;color:var(--bloom);line-height:1.2}
+.final .sc small{font-size:18px;color:var(--ink)}
+.final p{color:var(--ink-soft);font-size:14px;margin:6px 0 24px;line-height:1.9}
